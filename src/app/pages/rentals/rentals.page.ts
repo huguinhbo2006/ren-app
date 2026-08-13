@@ -411,7 +411,7 @@ export class RentalsPage implements OnInit {
         const message = err.error?.message || 'Error al generar el contrato.';
         const toast = await this.toastCtrl.create({
           message,
-          duration: 3500,
+          duration: 5000,
           color: 'danger',
           position: 'bottom',
         });
