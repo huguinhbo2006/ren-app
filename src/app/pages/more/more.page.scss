@@ -1,0 +1,61 @@
+.more-content {
+  --background: #f8fafc;
+}
+
+.profile-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+
+  .avatar-icon {
+    font-size: 4rem;
+  }
+}
+
+.usage-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  .progress-bar-bg {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+  }
+}
+
+.options-list {
+  background: transparent;
+
+  ion-item {
+    --background: #ffffff;
+    --border-color: #f1f5f9;
+    --border-radius: 12px;
+    margin-bottom: 6px;
+  }
+}
+
+.upgrade-btn {
+  --border-radius: 12px;
+  font-weight: 600;
+  height: 44px;
+}
+
+.form-item {
+  --background: #f8fafc;
+  --border-radius: 12px;
+}
+
+.save-btn {
+  --border-radius: 12px;
+  font-weight: 600;
+  height: 48px;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+}

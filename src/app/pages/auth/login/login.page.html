@@ -1,0 +1,113 @@
+<ion-content class="ion-padding auth-content" [fullscreen]="true">
+  <div class="auth-container">
+    
+    <!-- Hero Header -->
+    <div class="auth-header ion-text-center">
+      <div class="brand-badge">
+        <ion-icon name="key-outline"></ion-icon>
+      </div>
+      <h1 class="auth-title">Rentame</h1>
+      <p class="auth-subtitle">Administra todas tus rentas al instante</p>
+    </div>
+
+    <!-- Login Card -->
+    <ion-card class="auth-card">
+      <ion-card-content>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+
+          <!-- Email Field -->
+          <ion-item lines="inset" class="custom-input-item">
+            <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              type="email"
+              label="Correo Electrónico"
+              labelPlacement="floating"
+              formControlName="email"
+              placeholder="tu@correo.com"
+              autocomplete="email"
+            ></ion-input>
+          </ion-item>
+          @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+            <ion-text color="danger" class="error-msg">
+              <small>Ingresa un correo electrónico válido.</small>
+            </ion-text>
+          }
+
+          <!-- Password Field -->
+          <ion-item lines="inset" class="custom-input-item ion-margin-top">
+            <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              [type]="showPassword() ? 'text' : 'password'"
+              label="Contraseña"
+              labelPlacement="floating"
+              formControlName="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            ></ion-input>
+            <ion-button
+              fill="clear"
+              slot="end"
+              (click)="togglePasswordVisibility()"
+              class="eye-btn"
+            >
+              <ion-icon [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'" slot="icon-only" color="medium"></ion-icon>
+            </ion-button>
+          </ion-item>
+          @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+            <ion-text color="danger" class="error-msg">
+              <small>La contraseña es requerida.</small>
+            </ion-text>
+          }
+
+          <!-- Submit Button -->
+          <ion-button
+            type="submit"
+            expand="block"
+            color="primary"
+            class="submit-btn ion-margin-top"
+            [disabled]="loading()"
+          >
+            @if (loading()) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              <span>Iniciando sesión...</span>
+            } @else {
+              <ion-icon name="log-in-outline" slot="start"></ion-icon>
+              <span>Iniciar Sesión</span>
+            }
+          </ion-button>
+
+        </form>
+
+        <!-- Quick Demo Accents -->
+        <div class="demo-section ion-margin-top ion-text-center">
+          <ion-text color="medium">
+            <p class="demo-title">Acceso rápido de prueba</p>
+          </ion-text>
+          <div class="demo-buttons">
+            <ion-button size="small" fill="outline" color="secondary" (click)="setQuickUser('admin@rentame.mx')">
+              Admin
+            </ion-button>
+            <ion-button size="small" fill="outline" color="primary" (click)="setQuickUser('pro@rentame.mx')">
+              Pro
+            </ion-button>
+            <ion-button size="small" fill="outline" color="medium" (click)="setQuickUser('demo@rentame.mx')">
+              Free
+            </ion-button>
+          </div>
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Footer Register Link -->
+    <div class="auth-footer ion-text-center">
+      <ion-text color="medium">
+        <p>
+          ¿No tienes una cuenta?
+          <a routerLink="/register" class="register-link">Regístrate gratis</a>
+        </p>
+      </ion-text>
+    </div>
+
+  </div>
+</ion-content>

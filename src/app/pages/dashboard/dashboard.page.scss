@@ -1,0 +1,166 @@
+.dashboard-content {
+  --background: #f8fafc;
+}
+
+.user-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: #1e293b;
+}
+
+.welcome-box {
+  padding-bottom: 0.25rem;
+
+  .welcome-title {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .welcome-sub {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 4px 0 0 0;
+  }
+}
+
+.kpi-grid {
+  ion-col {
+    padding: 4px;
+  }
+}
+
+.kpi-card {
+  margin: 0;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+
+  ion-card-content {
+    padding: 12px;
+  }
+
+  .kpi-icon-wrap {
+    font-size: 1.5rem;
+    margin-bottom: 6px;
+  }
+
+  .kpi-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+  }
+
+  .kpi-value {
+    font-size: 1.125rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+}
+
+.chart-card {
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+}
+
+.mobile-chart-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 140px;
+  padding-top: 10px;
+  border-bottom: 1px solid #e2e8f0;
+
+  .chart-bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    width: 32px;
+
+    .bars-wrapper {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 110px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .chart-bar {
+      width: 10px;
+      min-height: 4px;
+      border-radius: 3px 3px 0 0;
+      transition: height 0.3s ease;
+
+      &.income-bar {
+        background-color: #2563eb;
+      }
+
+      &.expense-bar {
+        background-color: #ef4444;
+      }
+    }
+
+    .chart-label {
+      font-size: 0.6875rem;
+      color: #64748b;
+      margin-top: 6px;
+    }
+  }
+}
+
+.chart-legend {
+  font-size: 0.75rem;
+  color: #64748b;
+
+  .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+
+    &.bg-primary { background-color: #2563eb; }
+    &.bg-danger  { background-color: #ef4444; }
+  }
+}
+
+.section-header-title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.rounded-list {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.empty-mini-card {
+  border-radius: 14px;
+  margin: 0;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+
+  .empty-mini-icon {
+    font-size: 1.75rem;
+  }
+}

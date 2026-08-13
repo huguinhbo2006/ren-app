@@ -1,0 +1,81 @@
+.expenses-content {
+  --background: #f8fafc;
+}
+
+.segment-toolbar {
+  --padding-top: 0;
+  --padding-bottom: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+}
+
+.expenses-list {
+  background: transparent;
+  padding: 8px 0;
+
+  ion-item {
+    --background: #ffffff;
+    --border-color: #f1f5f9;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --inner-padding-end: 0;
+    margin-bottom: 4px;
+  }
+}
+
+.expense-list-icon {
+  font-size: 1.5rem;
+}
+
+.description-tag {
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.total-price {
+  font-size: 0.9375rem;
+}
+
+.status-pill {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+
+.extra-small {
+  font-size: 0.6875rem;
+}
+
+.form-item {
+  --background: #f8fafc;
+  --border-radius: 12px;
+}
+
+.receipt-box {
+  background: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+
+  .receipt-preview {
+    max-height: 140px;
+    display: block;
+    margin: 0 auto;
+  }
+}
+
+.save-btn {
+  --border-radius: 12px;
+  font-weight: 600;
+  height: 48px;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.empty-state {
+  margin-top: 3rem;
+  .empty-icon {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+  }
+}

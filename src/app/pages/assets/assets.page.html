@@ -1,0 +1,265 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Catálogo de Activos</ion-title>
+    <ion-badge slot="end" color="light" class="ion-margin-end">
+      {{ assets().length }} Activos
+    </ion-badge>
+  </ion-toolbar>
+
+  <!-- Searchbar -->
+  <ion-toolbar color="primary" class="search-toolbar">
+    <ion-searchbar
+      placeholder="Buscar activo o serie..."
+      [debounce]="300"
+      (ionInput)="onSearchChange($event)"
+      class="custom-searchbar"
+    ></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="assets-content">
+  
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading Skeletons -->
+  @if (loading()) {
+    <ion-list class="ion-padding">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <ion-item lines="full">
+          <ion-thumbnail slot="start">
+            <ion-skeleton-text animated style="border-radius: 8px;"></ion-skeleton-text>
+          </ion-thumbnail>
+          <ion-label>
+            <h3><ion-skeleton-text animated style="width: 70%;"></ion-skeleton-text></h3>
+            <p><ion-skeleton-text animated style="width: 40%;"></ion-skeleton-text></p>
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && assets().length === 0) {
+    <div class="empty-state ion-text-center ion-padding">
+      <ion-icon name="cube-outline" class="empty-icon text-muted"></ion-icon>
+      <h3>No hay activos registrados</h3>
+      <p class="small text-muted">Presiona el botón (+) para registrar tu primer activo.</p>
+      <ion-button fill="solid" color="primary" (click)="openCreateModal()">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Registrar Activo
+      </ion-button>
+    </div>
+  }
+
+  <!-- Assets List -->
+  @if (!loading() && assets().length > 0) {
+    <ion-list class="assets-list">
+      @for (asset of assets(); track asset.id) {
+        <ion-item lines="full" button (click)="openEditModal(asset)">
+          
+          <!-- Thumbnail -->
+          <ion-thumbnail slot="start" class="asset-thumb">
+            @if (asset.primary_image) {
+              <img [src]="asset.primary_image" [alt]="asset.name" class="rounded-thumb" />
+            } @else {
+              <div class="placeholder-thumb">
+                <ion-icon name="cube-outline"></ion-icon>
+              </div>
+            }
+          </ion-thumbnail>
+
+          <!-- Label -->
+          <ion-label>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <h2 class="asset-name">{{ asset.name }}</h2>
+            </div>
+
+            <p class="asset-sub">
+              @if (asset.category) {
+                <span>{{ asset.category.name }} · </span>
+              }
+              <span class="rate-tag fw-bold text-primary">{{ asset.daily_rate_cents | currencyMxn }} / día</span>
+            </p>
+
+            @if (asset.serial_number) {
+              <p class="small text-muted">S/N: {{ asset.serial_number }}</p>
+            }
+          </ion-label>
+
+          <!-- Status Badge & Menu Button -->
+          <div slot="end" class="d-flex flex-column align-items-end gap-2">
+            <ion-badge [color]="getStatusBadgeColor(asset.status)" class="status-pill">
+              {{ getStatusLabel(asset.status) }}
+            </ion-badge>
+            
+            <ion-button fill="clear" size="small" (click)="openActionMenu(asset, $event)" class="menu-btn">
+              <ion-icon name="ellipsis-vertical" slot="icon-only" color="medium"></ion-icon>
+            </ion-button>
+          </div>
+
+        </ion-item>
+      }
+    </ion-list>
+  }
+
+  <!-- FAB Add Button -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button color="primary" (click)="openCreateModal()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- Create / Edit Modal -->
+  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="closeModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>{{ editingAsset() ? 'Editar Activo' : 'Nuevo Activo' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">
+              <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding modal-content-area">
+        <form [formGroup]="assetForm" (ngSubmit)="saveAsset()">
+          
+          <!-- Photo Capture -->
+          <div class="photo-capture-box ion-text-center mb-3">
+            @if (capturedPhotoUrl()) {
+              <img [src]="capturedPhotoUrl()" class="captured-img" />
+            } @else {
+              <div class="photo-placeholder" (click)="takePhoto()">
+                <ion-icon name="camera-outline" class="cam-icon"></ion-icon>
+                <p class="small text-muted mb-0 mt-1">Tomar o Elegir Foto</p>
+              </div>
+            }
+
+            <ion-button fill="outline" size="small" color="primary" (click)="takePhoto()" class="mt-2">
+              <ion-icon name="camera-outline" slot="start"></ion-icon>
+              {{ capturedPhotoUrl() ? 'Cambiar Foto' : 'Subir Foto' }}
+            </ion-button>
+          </div>
+
+          <!-- Name -->
+          <ion-item lines="inset" class="form-item">
+            <ion-input
+              type="text"
+              label="Nombre del Activo *"
+              labelPlacement="floating"
+              formControlName="name"
+              placeholder="Ej. Revolvedora Honda 9HP"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Category -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-select label="Categoría" labelPlacement="floating" formControlName="category_id">
+              <ion-select-option [value]="null">Sin categoría</ion-select-option>
+              @for (cat of categories(); track cat.id) {
+                <ion-select-option [value]="cat.id">{{ cat.name }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+
+          <!-- Daily Rate -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="number"
+              label="Tarifa por Día ($ MXN) *"
+              labelPlacement="floating"
+              formControlName="daily_rate"
+              placeholder="0.00"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Weekly Rate -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="number"
+              label="Tarifa por Semana ($ MXN)"
+              labelPlacement="floating"
+              formControlName="weekly_rate"
+              placeholder="0.00"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Deposit -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="number"
+              label="Depósito en Garantía ($ MXN)"
+              labelPlacement="floating"
+              formControlName="deposit"
+              placeholder="0.00"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Status -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-select label="Estado Operativo" labelPlacement="floating" formControlName="status">
+              <ion-select-option value="available">Disponible</ion-select-option>
+              <ion-select-option value="rented">En Renta</ion-select-option>
+              <ion-select-option value="maintenance">Mantenimiento</ion-select-option>
+              <ion-select-option value="inactive">Inactivo</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <!-- Serial -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="text"
+              label="Número de Serie / Placa"
+              labelPlacement="floating"
+              formControlName="serial_number"
+              placeholder="SN-001"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Location -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="text"
+              label="Ubicación / Almacén"
+              labelPlacement="floating"
+              formControlName="location"
+              placeholder="Bodega Principal"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Description -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-textarea
+              label="Descripción"
+              labelPlacement="floating"
+              formControlName="description"
+              rows="3"
+            ></ion-textarea>
+          </ion-item>
+
+          <ion-button
+            type="submit"
+            expand="block"
+            color="primary"
+            class="save-btn ion-margin-top"
+            [disabled]="saving()"
+          >
+            @if (saving()) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              <span>Guardando...</span>
+            } @else {
+              <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+              <span>{{ editingAsset() ? 'Actualizar Activo' : 'Crear Activo' }}</span>
+            }
+          </ion-button>
+
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

@@ -1,0 +1,161 @@
+<ion-content class="ion-padding auth-content" [fullscreen]="true">
+  <div class="auth-container">
+    
+    <!-- Hero Header -->
+    <div class="auth-header ion-text-center">
+      <div class="brand-badge">
+        <ion-icon name="person-add-outline"></ion-icon>
+      </div>
+      <h1 class="auth-title">Crear Cuenta</h1>
+      <p class="auth-subtitle">Comienza gratis en Rentame</p>
+    </div>
+
+    <!-- Register Card -->
+    <ion-card class="auth-card">
+      <ion-card-content>
+        
+        <!-- Plan Segment -->
+        <div class="plan-segment-container mb-3">
+          <ion-segment [value]="selectedPlan()" (ionChange)="onPlanSegmentChange($event)" color="primary">
+            <ion-segment-button value="free">
+              <ion-label class="fw-bold">Gratis ($0)</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="pro">
+              <ion-label class="fw-bold">Pro ($199)</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+          
+          <div class="plan-info-box ion-margin-top ion-padding-horizontal">
+            @if (selectedPlan() === 'free') {
+              <p class="small text-muted mb-0">
+                <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                Hasta 3 activos y 10 clientes. Ideal para comenzar.
+              </p>
+            } @else {
+              <p class="small text-primary mb-0 fw-semibold">
+                <ion-icon name="checkmark-circle" color="primary"></ion-icon>
+                Activos y clientes ilimitados, contratos PDF y reportes financieros.
+              </p>
+            }
+          </div>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+
+          <!-- Name -->
+          <ion-item lines="inset" class="custom-input-item">
+            <ion-icon name="person-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              type="text"
+              label="Nombre o Empresa"
+              labelPlacement="floating"
+              formControlName="name"
+              placeholder="Ej. Rentas San Juan"
+            ></ion-input>
+          </ion-item>
+          @if (registerForm.get('name')?.touched && registerForm.get('name')?.invalid) {
+            <ion-text color="danger" class="error-msg">
+              <small>El nombre es requerido.</small>
+            </ion-text>
+          }
+
+          <!-- Email -->
+          <ion-item lines="inset" class="custom-input-item ion-margin-top">
+            <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              type="email"
+              label="Correo Electrónico"
+              labelPlacement="floating"
+              formControlName="email"
+              placeholder="contacto@rentas.mx"
+              autocomplete="email"
+            ></ion-input>
+          </ion-item>
+          @if (registerForm.get('email')?.touched && registerForm.get('email')?.invalid) {
+            <ion-text color="danger" class="error-msg">
+              <small>Ingresa un correo válido.</small>
+            </ion-text>
+          }
+
+          <!-- Phone -->
+          <ion-item lines="inset" class="custom-input-item ion-margin-top">
+            <ion-icon name="call-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              type="tel"
+              label="Teléfono (Opcional)"
+              labelPlacement="floating"
+              formControlName="phone"
+              placeholder="55 1234 5678"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Password -->
+          <ion-item lines="inset" class="custom-input-item ion-margin-top">
+            <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              [type]="showPassword() ? 'text' : 'password'"
+              label="Contraseña (Mín. 8 car.)"
+              labelPlacement="floating"
+              formControlName="password"
+              placeholder="••••••••"
+            ></ion-input>
+            <ion-button fill="clear" slot="end" (click)="togglePasswordVisibility()" class="eye-btn">
+              <ion-icon [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'" slot="icon-only" color="medium"></ion-icon>
+            </ion-button>
+          </ion-item>
+          @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
+            <ion-text color="danger" class="error-msg">
+              <small>La contraseña debe tener al menos 8 caracteres.</small>
+            </ion-text>
+          }
+
+          <!-- Confirm Password -->
+          <ion-item lines="inset" class="custom-input-item ion-margin-top">
+            <ion-icon name="lock-closed-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              [type]="showPassword() ? 'text' : 'password'"
+              label="Confirmar Contraseña"
+              labelPlacement="floating"
+              formControlName="password_confirmation"
+              placeholder="••••••••"
+            ></ion-input>
+          </ion-item>
+          @if (registerForm.hasError('passwordMismatch') && registerForm.get('password_confirmation')?.touched) {
+            <ion-text color="danger" class="error-msg">
+              <small>Las contraseñas no coinciden.</small>
+            </ion-text>
+          }
+
+          <!-- Submit Button -->
+          <ion-button
+            type="submit"
+            expand="block"
+            color="primary"
+            class="submit-btn ion-margin-top"
+            [disabled]="loading()"
+          >
+            @if (loading()) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              <span>Creando cuenta...</span>
+            } @else {
+              <ion-icon name="person-add-outline" slot="start"></ion-icon>
+              <span>Crear Cuenta Gratis</span>
+            }
+          </ion-button>
+
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Footer Login Link -->
+    <div class="auth-footer ion-text-center">
+      <ion-text color="medium">
+        <p>
+          ¿Ya tienes cuenta?
+          <a routerLink="/login" class="login-link">Inicia sesión</a>
+        </p>
+      </ion-text>
+    </div>
+
+  </div>
+</ion-content>

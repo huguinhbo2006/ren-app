@@ -1,0 +1,317 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Clientes</ion-title>
+    <ion-badge slot="end" color="light" class="ion-margin-end">
+      {{ customers().length }} Clientes
+    </ion-badge>
+  </ion-toolbar>
+
+  <!-- Searchbar -->
+  <ion-toolbar color="primary" class="search-toolbar">
+    <ion-searchbar
+      placeholder="Buscar por nombre, teléfono o RFC..."
+      [debounce]="300"
+      (ionInput)="onSearchChange($event)"
+      class="custom-searchbar"
+    ></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="customers-content">
+  
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading Skeletons -->
+  @if (loading()) {
+    <ion-list class="ion-padding">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <ion-item lines="full">
+          <ion-avatar slot="start">
+            <ion-skeleton-text animated style="border-radius: 50%;"></ion-skeleton-text>
+          </ion-avatar>
+          <ion-label>
+            <h3><ion-skeleton-text animated style="width: 60%;"></ion-skeleton-text></h3>
+            <p><ion-skeleton-text animated style="width: 40%;"></ion-skeleton-text></p>
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && customers().length === 0) {
+    <div class="empty-state ion-text-center ion-padding">
+      <ion-icon name="person-outline" class="empty-icon text-muted"></ion-icon>
+      <h3>No hay clientes registrados</h3>
+      <p class="small text-muted">Presiona el botón (+) para registrar tu primer cliente.</p>
+      <ion-button fill="solid" color="primary" (click)="openCreateModal()">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Registrar Cliente
+      </ion-button>
+    </div>
+  }
+
+  <!-- Customers List with Sliding Items -->
+  @if (!loading() && customers().length > 0) {
+    <ion-list class="customers-list">
+      @for (c of customers(); track c.id) {
+        <ion-item-sliding #slidingItem>
+          
+          <ion-item lines="full" button (click)="openStatementModal(c)">
+            
+            <!-- Avatar -->
+            <ion-avatar slot="start" class="cust-avatar">
+              <div class="avatar-initials">
+                {{ c.name.charAt(0).toUpperCase() }}
+              </div>
+            </ion-avatar>
+
+            <!-- Label -->
+            <ion-label>
+              <h2 class="cust-name">{{ c.name }}</h2>
+              <p class="cust-phone">
+                <ion-icon name="call-outline" class="me-1"></ion-icon>
+                {{ c.phone }}
+              </p>
+              @if (c.rfc) {
+                <p class="small text-muted">RFC: {{ c.rfc }}</p>
+              }
+            </ion-label>
+
+            <!-- Debt Badge & Direct Actions -->
+            <div slot="end" class="d-flex flex-column align-items-end gap-1">
+              @if ((c.total_owed_cents || 0) > 0) {
+                <ion-badge color="danger" class="debt-badge">
+                  {{ c.total_owed_cents | currencyMxn }}
+                </ion-badge>
+              } @else {
+                <ion-badge color="success" class="debt-badge">
+                  Al día
+                </ion-badge>
+              }
+
+              <!-- Direct Call / WhatsApp Buttons -->
+              <div class="d-flex gap-1 mt-1" (click)="$event.stopPropagation()">
+                <a [href]="'tel:' + c.phone" class="action-circle-btn call-btn">
+                  <ion-icon name="call-outline"></ion-icon>
+                </a>
+                <a [href]="'https://wa.me/' + getCleanPhone(c.phone)" target="_blank" rel="noopener noreferrer" class="action-circle-btn wa-btn">
+                  <ion-icon name="logo-whatsapp"></ion-icon>
+                </a>
+              </div>
+            </div>
+
+          </ion-item>
+
+          <!-- Sliding Actions -->
+          <ion-item-options side="end">
+            <ion-item-option color="primary" (click)="openEditModal(c, slidingItem)">
+              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+            </ion-item-option>
+            <ion-item-option color="danger" (click)="deleteCustomer(c, slidingItem)">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+
+        </ion-item-sliding>
+      }
+    </ion-list>
+  }
+
+  <!-- FAB Add Button -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button color="primary" (click)="openCreateModal()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- Create / Edit Modal -->
+  <ion-modal [isOpen]="isFormModalOpen()" (didDismiss)="closeModals()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>{{ editingCustomer() ? 'Editar Cliente' : 'Nuevo Cliente' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModals()">
+              <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding modal-content-area">
+        <form [formGroup]="customerForm" (ngSubmit)="saveCustomer()">
+          
+          <!-- Name -->
+          <ion-item lines="inset" class="form-item">
+            <ion-input
+              type="text"
+              label="Nombre Completo *"
+              labelPlacement="floating"
+              formControlName="name"
+              placeholder="Ej. Roberto Sánchez"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Phone -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="tel"
+              label="Teléfono / WhatsApp *"
+              labelPlacement="floating"
+              formControlName="phone"
+              placeholder="55 1234 5678"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Email -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="email"
+              label="Correo Electrónico"
+              labelPlacement="floating"
+              formControlName="email"
+              placeholder="cliente@correo.com"
+            ></ion-input>
+          </ion-item>
+
+          <!-- RFC -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="text"
+              label="RFC (México)"
+              labelPlacement="floating"
+              formControlName="rfc"
+              placeholder="XAXX010101000"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Address -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="text"
+              label="Dirección"
+              labelPlacement="floating"
+              formControlName="address"
+              placeholder="Calle y Colonia"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Notes -->
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-textarea
+              label="Notas Internas"
+              labelPlacement="floating"
+              formControlName="notes"
+              rows="3"
+            ></ion-textarea>
+          </ion-item>
+
+          <ion-button
+            type="submit"
+            expand="block"
+            color="primary"
+            class="save-btn ion-margin-top"
+            [disabled]="saving()"
+          >
+            @if (saving()) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              <span>Guardando...</span>
+            } @else {
+              <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+              <span>{{ editingCustomer() ? 'Actualizar Cliente' : 'Registrar Cliente' }}</span>
+            }
+          </ion-button>
+
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Statement Modal -->
+  <ion-modal [isOpen]="isStatementModalOpen()" (didDismiss)="closeModals()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Estado de Cuenta</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModals()">
+              <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding modal-content-area">
+        @if (loadingStatement()) {
+          <div class="ion-text-center ion-padding">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <p class="small text-muted mt-2">Cargando estado de cuenta...</p>
+          </div>
+        } @else if (selectedStatement(); as statement) {
+          
+          <div class="statement-header ion-text-center mb-3">
+            <h2 class="fw-bold mb-0">{{ statement.customer.name }}</h2>
+            <p class="text-muted small mb-0">{{ statement.customer.phone }}</p>
+          </div>
+
+          <!-- Summary Pills -->
+          <div class="statement-summary-box mb-3">
+            <div class="summary-stat-row">
+              <span class="text-muted small">Total Facturado:</span>
+              <strong class="text-dark">{{ statement.summary.total_billed_cents | currencyMxn }}</strong>
+            </div>
+            <div class="summary-stat-row">
+              <span class="text-muted small">Total Pagado:</span>
+              <strong class="text-success">{{ statement.summary.total_paid_cents | currencyMxn }}</strong>
+            </div>
+            <div class="summary-stat-row total-row">
+              <span class="fw-bold">Saldo Pendiente:</span>
+              <strong class="text-danger fw-bold h5 mb-0">{{ statement.summary.balance_owed_cents | currencyMxn }}</strong>
+            </div>
+          </div>
+
+          <!-- Rentals Breakdown List -->
+          <h4 class="section-title fw-bold mb-2">Contratos y Rentas</h4>
+          @if (statement.rentals.length === 0) {
+            <p class="small text-muted ion-text-center py-3">Sin contratos registrados.</p>
+          } @else {
+            <ion-list class="rounded-statement-list">
+              @for (r of statement.rentals; track r.rental_id) {
+                <ion-item lines="full">
+                  <ion-label>
+                    <h3>{{ r.asset_name }}</h3>
+                    <p class="small">{{ r.folio }} · {{ r.start_date }} al {{ r.end_date }}</p>
+                  </ion-label>
+                  <div slot="end" class="text-end">
+                    <div class="fw-bold small">{{ r.total_amount_cents | currencyMxn }}</div>
+                    <span class="small" [class.text-danger]="r.balance_cents > 0" [class.text-success]="r.balance_cents === 0">
+                      Saldo: {{ r.balance_cents | currencyMxn }}
+                    </span>
+                  </div>
+                </ion-item>
+              }
+            </ion-list>
+          }
+
+          <!-- WhatsApp contact button -->
+          <div class="mt-4">
+            <a
+              [href]="'https://wa.me/' + getCleanPhone(statement.customer.phone)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-wa-full"
+            >
+              <ion-icon name="logo-whatsapp" class="me-2"></ion-icon>
+              Enviar Mensaje WhatsApp
+            </a>
+          </div>
+
+        }
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

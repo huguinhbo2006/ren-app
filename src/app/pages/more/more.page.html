@@ -1,0 +1,173 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Perfil y Cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="more-content ion-padding">
+  
+  <!-- Profile Header Card -->
+  <div class="profile-card ion-padding mb-3 text-center">
+    <div class="avatar-box mb-2">
+      <ion-icon name="person-circle-outline" class="avatar-icon text-primary"></ion-icon>
+    </div>
+    <h2 class="fw-bold mb-0 text-dark">{{ currentUser()?.name }}</h2>
+    <p class="small text-muted mb-2">{{ currentUser()?.email }}</p>
+
+    <span class="badge rounded-pill px-3 py-1 {{ authService.isPro() ? 'bg-primary text-white' : 'bg-secondary text-white' }}">
+      {{ authService.isPro() ? '⭐ Plan Pro Activo' : 'Plan Básico Gratuito' }}
+    </span>
+  </div>
+
+  <!-- Subscription Usage Card -->
+  @if (planUsage(); as plan) {
+    <ion-card class="usage-card ion-no-margin mb-3">
+      <ion-card-header class="ion-padding-bottom">
+        <ion-card-title class="fw-bold fs-6">Límites y Uso de Recursos</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        
+        <!-- Activos -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small text-dark">Activos:</span>
+            <strong class="small text-dark">{{ plan.assets.used }} / {{ plan.assets.limit > 1000 ? '∞' : plan.assets.limit }}</strong>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill bg-primary" [style.width.%]="plan.assets.limit < 100 ? (plan.assets.used / plan.assets.limit) * 100 : 10"></div>
+          </div>
+        </div>
+
+        <!-- Clientes -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small text-dark">Clientes:</span>
+            <strong class="small text-dark">{{ plan.customers.used }} / {{ plan.customers.limit > 1000 ? '∞' : plan.customers.limit }}</strong>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill bg-success" [style.width.%]="plan.customers.limit < 100 ? (plan.customers.used / plan.customers.limit) * 100 : 10"></div>
+          </div>
+        </div>
+
+        <!-- Rentas -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small text-dark">Rentas este mes:</span>
+            <strong class="small text-dark">{{ plan.rentals_this_month.used }} / {{ plan.rentals_this_month.limit > 1000 ? '∞' : plan.rentals_this_month.limit }}</strong>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill bg-info" [style.width.%]="plan.rentals_this_month.limit < 100 ? (plan.rentals_this_month.used / plan.rentals_this_month.limit) * 100 : 10"></div>
+          </div>
+        </div>
+
+        @if (!authService.isPro()) {
+          <ion-button expand="block" color="primary" class="upgrade-btn ion-margin-top" (click)="upgradeToPro()">
+            <ion-icon name="star-outline" slot="start"></ion-icon>
+            Actualizar a Plan Pro
+          </ion-button>
+        }
+
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- Options List -->
+  <ion-list class="options-list mb-4">
+    
+    <ion-item lines="full" button (click)="openSettingsModal()">
+      <ion-icon name="business-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <h3>Datos del Negocio</h3>
+        <p class="small text-muted">Nombre comercial, RFC y dirección</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item lines="full" button (click)="logout()">
+      <ion-icon name="log-out-outline" slot="start" color="danger"></ion-icon>
+      <ion-label color="danger">
+        <h3>Cerrar Sesión</h3>
+        <p class="small text-muted">Salir de la aplicación</p>
+      </ion-label>
+    </ion-item>
+
+  </ion-list>
+
+  <!-- Business Settings Modal -->
+  <ion-modal [isOpen]="isSettingsModalOpen()" (didDismiss)="closeModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Configuración de Negocio</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">
+              <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding modal-content-area">
+        <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()">
+          
+          <ion-item lines="inset" class="form-item">
+            <ion-input
+              type="text"
+              label="Nombre del Negocio *"
+              labelPlacement="floating"
+              formControlName="business_name"
+              placeholder="Ej. Arrendadora Express"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="text"
+              label="RFC / Identificación Fiscal"
+              labelPlacement="floating"
+              formControlName="business_rfc"
+              placeholder="Ej. AEX200101XYZ"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="tel"
+              label="Teléfono de Contacto"
+              labelPlacement="floating"
+              formControlName="business_phone"
+              placeholder="Ej. 55 1234 5678"
+            ></ion-input>
+          </ion-item>
+
+          <ion-item lines="inset" class="form-item ion-margin-top">
+            <ion-input
+              type="text"
+              label="Dirección Principal"
+              labelPlacement="floating"
+              formControlName="business_address"
+              placeholder="Ej. Av. Central 123"
+            ></ion-input>
+          </ion-item>
+
+          <ion-button
+            type="submit"
+            expand="block"
+            color="primary"
+            class="save-btn ion-margin-top"
+            [disabled]="saving()"
+          >
+            @if (saving()) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              <span>Guardando...</span>
+            } @else {
+              <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+              <span>Guardar Configuración</span>
+            }
+          </ion-button>
+
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

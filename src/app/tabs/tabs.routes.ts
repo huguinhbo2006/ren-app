@@ -7,30 +7,45 @@ export const routes: Routes = [
     component: TabsPage,
     children: [
       {
-        path: 'tab1',
+        path: 'dashboard',
         loadComponent: () =>
-          import('../tab1/tab1.page').then((m) => m.Tab1Page),
+          import('../pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
       },
       {
-        path: 'tab2',
+        path: 'rentals',
         loadComponent: () =>
-          import('../tab2/tab2.page').then((m) => m.Tab2Page),
+          import('../pages/rentals/rentals.page').then((m) => m.RentalsPage),
       },
       {
-        path: 'tab3',
+        path: 'assets',
         loadComponent: () =>
-          import('../tab3/tab3.page').then((m) => m.Tab3Page),
+          import('../pages/assets/assets.page').then((m) => m.AssetsPage),
+      },
+      {
+        path: 'customers',
+        loadComponent: () =>
+          import('../pages/customers/customers.page').then((m) => m.CustomersPage),
+      },
+      {
+        path: 'expenses',
+        loadComponent: () =>
+          import('../pages/expenses/expenses.page').then((m) => m.ExpensesPage),
+      },
+      {
+        path: 'more',
+        loadComponent: () =>
+          import('../pages/more/more.page').then((m) => m.MorePage),
       },
       {
         path: '',
-        redirectTo: '/tabs/tab1',
+        redirectTo: '/tabs/rentals',
         pathMatch: 'full',
       },
     ],
   },
   {
     path: '',
-    redirectTo: '/tabs/tab1',
+    redirectTo: '/tabs/rentals',
     pathMatch: 'full',
   },
 ];

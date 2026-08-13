@@ -1,0 +1,200 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Rentame</ion-title>
+    <ion-badge slot="end" color="light" class="user-badge ion-margin-end">
+      {{ authService.planSlug() | uppercase }}
+    </ion-badge>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="dashboard-content ion-padding-bottom">
+  
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="welcome-box ion-padding">
+    <h2 class="welcome-title">¡Hola, {{ currentUser()?.name }}! 👋</h2>
+    <p class="welcome-sub">Resumen de tu negocio de rentas</p>
+  </div>
+
+  <!-- Loading Skeletons -->
+  @if (loading()) {
+    <div class="ion-padding">
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6"><ion-skeleton-text animated style="height: 100px; border-radius: 16px;"></ion-skeleton-text></ion-col>
+          <ion-col size="6"><ion-skeleton-text animated style="height: 100px; border-radius: 16px;"></ion-skeleton-text></ion-col>
+          <ion-col size="6"><ion-skeleton-text animated style="height: 100px; border-radius: 16px;"></ion-skeleton-text></ion-col>
+          <ion-col size="6"><ion-skeleton-text animated style="height: 100px; border-radius: 16px;"></ion-skeleton-text></ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  }
+
+  @if (!loading() && data(); as dashboard) {
+    
+    <!-- KPI 2x2 Grid -->
+    <ion-grid class="kpi-grid ion-padding-horizontal">
+      <ion-row>
+        
+        <!-- Ingresos -->
+        <ion-col size="6">
+          <ion-card class="kpi-card income-kpi">
+            <ion-card-content>
+              <div class="kpi-icon-wrap text-success">
+                <ion-icon name="cash-outline"></ion-icon>
+              </div>
+              <p class="kpi-label">Ingresos Mes</p>
+              <h3 class="kpi-value text-success">{{ dashboard.monthly_income_cents | currencyMxn }}</h3>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- Rentas Activas -->
+        <ion-col size="6">
+          <ion-card class="kpi-card rentals-kpi">
+            <ion-card-content>
+              <div class="kpi-icon-wrap text-primary">
+                <ion-icon name="key-outline"></ion-icon>
+              </div>
+              <p class="kpi-label">Rentas Activas</p>
+              <h3 class="kpi-value text-primary">{{ dashboard.total_rentals_active }}</h3>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- Por Cobrar -->
+        <ion-col size="6">
+          <ion-card class="kpi-card pending-kpi">
+            <ion-card-content>
+              <div class="kpi-icon-wrap text-warning">
+                <ion-icon name="hourglass-outline"></ion-icon>
+              </div>
+              <p class="kpi-label">Por Cobrar</p>
+              <h3 class="kpi-value text-warning">{{ dashboard.accounts_receivable_cents | currencyMxn }}</h3>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <!-- Egresos -->
+        <ion-col size="6">
+          <ion-card class="kpi-card expenses-kpi">
+            <ion-card-content>
+              <div class="kpi-icon-wrap text-danger">
+                <ion-icon name="wallet-outline"></ion-icon>
+              </div>
+              <p class="kpi-label">Egresos Mes</p>
+              <h3 class="kpi-value text-danger">{{ dashboard.monthly_expenses_cents | currencyMxn }}</h3>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+      </ion-row>
+    </ion-grid>
+
+    <!-- 6-Month CSS Financial Bar Chart -->
+    <ion-card class="chart-card ion-margin">
+      <ion-card-header>
+        <ion-card-title class="section-title">
+          <ion-icon name="trending-up-outline" class="me-1" color="primary"></ion-icon>
+          Finanzas (Últimos Meses)
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="mobile-chart-container">
+          @for (m of dashboard.monthly_chart; track m.month) {
+            <div class="chart-bar-group">
+              <div class="bars-wrapper">
+                <!-- Income bar -->
+                <div 
+                  class="chart-bar income-bar"
+                  [style.height.%]="(m.income_cents / getMaxChartValue(dashboard.monthly_chart)) * 100"
+                  [title]="m.income_cents | currencyMxn"
+                ></div>
+                <!-- Expense bar -->
+                <div 
+                  class="chart-bar expense-bar"
+                  [style.height.%]="(m.expenses_cents / getMaxChartValue(dashboard.monthly_chart)) * 100"
+                  [title]="m.expenses_cents | currencyMxn"
+                ></div>
+              </div>
+              <span class="chart-label">{{ m.month }}</span>
+            </div>
+          }
+        </div>
+        <div class="chart-legend ion-margin-top ion-text-center">
+          <span class="legend-item"><span class="dot bg-primary"></span> Ingresos</span>
+          <span class="legend-item"><span class="dot bg-danger ms-3"></span> Egresos</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Rentas por Vencer -->
+    <div class="section-container ion-margin-top ion-padding-horizontal">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="section-header-title">Rentas por Vencer</h4>
+        <ion-button fill="clear" size="small" routerLink="/tabs/rentals">Ver todo</ion-button>
+      </div>
+
+      @if (dashboard.rentals_expiring_soon.length === 0) {
+        <ion-card class="empty-mini-card ion-text-center ion-padding">
+          <ion-icon name="calendar-outline" color="success" class="empty-mini-icon"></ion-icon>
+          <p class="small text-muted mb-0">No hay contratos por vencer en 7 días.</p>
+        </ion-card>
+      } @else {
+        <ion-list class="rounded-list">
+          @for (rental of dashboard.rentals_expiring_soon; track rental.id) {
+            <ion-item button lines="full" [routerLink]="['/tabs/rentals']">
+              <ion-icon name="key-outline" slot="start" color="primary"></ion-icon>
+              <ion-label>
+                <h2>{{ rental.customer.name }}</h2>
+                <p>{{ rental.asset.name }} · Folio: {{ rental.folio }}</p>
+              </ion-label>
+              <ion-badge slot="end" [color]="getUrgencyColor(rental.days_remaining)">
+                {{ rental.days_remaining === 0 ? 'Hoy' : rental.days_remaining + 'd' }}
+              </ion-badge>
+            </ion-item>
+          }
+        </ion-list>
+      }
+    </div>
+
+    <!-- Últimos Pagos -->
+    <div class="section-container ion-margin-top ion-padding-horizontal">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="section-header-title">Últimos Pagos</h4>
+      </div>
+
+      @if (dashboard.recent_payments.length === 0) {
+        <ion-card class="empty-mini-card ion-text-center ion-padding">
+          <p class="small text-muted mb-0">Sin transacciones recientes.</p>
+        </ion-card>
+      } @else {
+        <ion-list class="rounded-list">
+          @for (pay of dashboard.recent_payments; track pay.id) {
+            <ion-item lines="full">
+              <ion-icon name="cash-outline" slot="start" color="success"></ion-icon>
+              <ion-label>
+                <h2>{{ pay.customer_name }}</h2>
+                <p>{{ pay.rental_folio }} · {{ pay.payment_date }}</p>
+              </ion-label>
+              <ion-text slot="end" color="success" class="fw-bold">
+                {{ pay.amount_cents | currencyMxn }}
+              </ion-text>
+            </ion-item>
+          }
+        </ion-list>
+      }
+    </div>
+
+  }
+
+  <!-- Floating Action Button -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button color="primary" routerLink="/tabs/rentals">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>
