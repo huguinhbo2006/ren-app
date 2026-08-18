@@ -1,0 +1,45 @@
+.stat-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+  &.primary {
+    background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+    color: #fff;
+    ion-card-subtitle, ion-card-title { color: #fff; }
+  }
+
+  &.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    ion-card-subtitle, ion-card-title { color: #fff; }
+  }
+
+  &.success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    ion-card-subtitle, ion-card-title { color: #fff; }
+  }
+
+  .stat-amount {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+}
+
+.stat-mini {
+  border-radius: 12px;
+  margin: 0;
+
+  ion-card-subtitle {
+    font-size: 0.75rem;
+  }
+
+  ion-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+}
+
+.text-danger {
+  color: var(--ion-color-danger);
+}

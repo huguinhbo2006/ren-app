@@ -77,4 +77,19 @@ export class RentalService {
       }),
     );
   }
+
+  downloadPdf(id: number, folio: string): void {
+    this.http.get(`${this.api}/${id}/contract-pdf`, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Contrato_${folio}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+    });
+  }
 }

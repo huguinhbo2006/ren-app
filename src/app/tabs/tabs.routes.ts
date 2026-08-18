@@ -37,6 +37,16 @@ export const routes: Routes = [
           import('../pages/more/more.page').then((m) => m.MorePage),
       },
       {
+        path: 'reports',
+        loadComponent: () =>
+          import('../pages/reports/reports.page').then((m) => m.ReportsPage),
+      },
+      {
+        path: 'payments',
+        loadComponent: () =>
+          import('../pages/payments/payments.page').then((m) => m.PaymentsPage),
+      },
+      {
         path: '',
         redirectTo: '/tabs/rentals',
         pathMatch: 'full',

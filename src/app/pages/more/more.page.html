@@ -73,9 +73,25 @@
 
   <!-- Options List -->
   <ion-list class="options-list mb-4">
+
+    <ion-item lines="full" button [routerLink]="['/tabs/reports']">
+      <ion-icon name="bar-chart-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <h3>Reportes Financieros</h3>
+        <p class="small text-muted">Balance, cuentas por cobrar, ocupación y ROI</p>
+      </ion-label>
+    </ion-item>
+
+    <ion-item lines="full" button [routerLink]="['/tabs/payments']">
+      <ion-icon name="cash-outline" slot="start" color="success"></ion-icon>
+      <ion-label>
+        <h3>Historial de Cobros</h3>
+        <p class="small text-muted">Abonos, pagos de rentas y recibos</p>
+      </ion-label>
+    </ion-item>
     
     <ion-item lines="full" button (click)="openSettingsModal()">
-      <ion-icon name="business-outline" slot="start" color="primary"></ion-icon>
+      <ion-icon name="business-outline" slot="start" color="tertiary"></ion-icon>
       <ion-label>
         <h3>Datos del Negocio</h3>
         <p class="small text-muted">Nombre comercial, RFC y dirección</p>

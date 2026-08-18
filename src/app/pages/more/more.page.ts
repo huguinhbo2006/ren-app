@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   IonContent,
@@ -35,7 +36,8 @@ import {
   notificationsOutline,
   checkmarkOutline,
   closeOutline,
-  shieldCheckmarkOutline,
+  barChartOutline,
+  cashOutline,
 } from 'ionicons/icons';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { AuthService } from '../../core/auth/auth.service';
@@ -48,6 +50,7 @@ import { SettingService } from '../../core/services/setting.service';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     ReactiveFormsModule,
     IonContent,
     IonHeader,
@@ -101,7 +104,8 @@ export class MorePage implements OnInit {
       'notifications-outline': notificationsOutline,
       'checkmark-outline': checkmarkOutline,
       'close-outline': closeOutline,
-      'shield-checkmark-outline': shieldCheckmarkOutline,
+      'bar-chart-outline': barChartOutline,
+      'cash-outline': cashOutline,
     });
   }
 

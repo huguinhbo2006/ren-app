@@ -1,0 +1,179 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Reportes Financieros</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="exportPdf(activeTab())">
+        <ion-icon name="download-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar color="primary">
+    <ion-segment [value]="activeTab()" (ionChange)="onTabChange($event)" scrollable>
+      <ion-segment-button value="balance">
+        <ion-label>Balance</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="receivable">
+        <ion-label>Por Cobrar</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="utilization">
+        <ion-label>Ocupación</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="roi">
+        <ion-label>ROI Activos</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- TAB: BALANCE FINANCIERO -->
+  @if (activeTab() === 'balance') {
+    @if (loading()) {
+      <div class="ion-text-center ion-padding">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+    } @else if (balance(); as b) {
+      <ion-card class="stat-card primary">
+        <ion-card-header>
+          <ion-card-subtitle>Utilidad Neta ({{ b.period }})</ion-card-subtitle>
+          <ion-card-title class="stat-amount">{{ b.net_profit_cents | currencyMxn }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-badge color="light">Margen: {{ b.profit_margin_pct }}%</ion-badge>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <ion-card class="stat-mini success">
+              <ion-card-header>
+                <ion-card-subtitle>Ingresos Totales</ion-card-subtitle>
+                <ion-card-title>{{ b.total_income_cents | currencyMxn }}</ion-card-title>
+              </ion-card-header>
+            </ion-card>
+          </ion-col>
+          <ion-col size="6">
+            <ion-card class="stat-mini danger">
+              <ion-card-header>
+                <ion-card-subtitle>Egresos Totales</ion-card-subtitle>
+                <ion-card-title>{{ b.total_expense_cents | currencyMxn }}</ion-card-title>
+              </ion-card-header>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    }
+  }
+
+  <!-- TAB: CUENTAS POR COBRAR -->
+  @if (activeTab() === 'receivable') {
+    @if (loading()) {
+      <div class="ion-text-center ion-padding">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+    } @else if (receivable(); as r) {
+      <ion-card class="stat-card warning">
+        <ion-card-header>
+          <ion-card-subtitle>Pendiente por Cobrar</ion-card-subtitle>
+          <ion-card-title class="stat-amount">{{ r.total_receivable_cents | currencyMxn }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-badge color="dark">{{ r.count }} contratos con saldo pendiente</ion-badge>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-list class="ion-margin-top">
+        @for (item of r.items; track item.rental_id) {
+          <ion-item>
+            <ion-label>
+              <h2>{{ item.customer_name }} — {{ item.folio }}</h2>
+              <p>{{ item.asset_name }} | Vence: {{ item.end_date }}</p>
+              <p class="text-danger font-weight-bold">
+                Pendiente: {{ item.pending_amount_cents | currencyMxn }} (de {{ item.total_amount_cents | currencyMxn }})
+              </p>
+            </ion-label>
+            <ion-badge slot="end" [color]="getUrgencyColor(item.urgency)">
+              {{ item.overdue_days > 0 ? item.overdue_days + 'd vencido' : 'Al día' }}
+            </ion-badge>
+          </ion-item>
+        } @empty {
+          <ion-item>
+            <ion-label class="ion-text-center ion-padding">
+              <ion-icon name="checkmark-circle-outline" color="success" style="font-size: 32px;"></ion-icon>
+              <p>No hay saldos pendientes por cobrar.</p>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  }
+
+  <!-- TAB: OCUPACIÓN -->
+  @if (activeTab() === 'utilization') {
+    @if (loading()) {
+      <div class="ion-text-center ion-padding">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+    } @else if (utilization(); as u) {
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Uso de Inventario ({{ u.period }})</ion-card-title>
+          <ion-card-subtitle>Total de activos: {{ u.total_assets }}</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+
+      <ion-list>
+        @for (item of u.items; track item.asset_id) {
+          <ion-item>
+            <ion-label>
+              <h2>{{ item.name }}</h2>
+              <p>Días rentado: {{ item.rented_days }} / {{ item.total_days_in_period }}</p>
+              <p>Retorno Neto: {{ item.net_return_cents | currencyMxn }}</p>
+            </ion-label>
+            <ion-badge slot="end" color="primary">{{ item.utilization_pct }}% uso</ion-badge>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  }
+
+  <!-- TAB: ROI DE ACTIVOS -->
+  @if (activeTab() === 'roi') {
+    @if (loading()) {
+      <div class="ion-text-center ion-padding">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+    } @else if (assetRoi(); as roi) {
+      <ion-card class="stat-card success">
+        <ion-card-header>
+          <ion-card-subtitle>Retorno de Inversión Total</ion-card-subtitle>
+          <ion-card-title class="stat-amount">{{ roi.total_net_profit_cents | currencyMxn }}</ion-card-title>
+        </ion-card-header>
+      </ion-card>
+
+      <ion-list class="ion-margin-top">
+        @for (item of roi.items; track item.id) {
+          <ion-item>
+            <ion-label>
+              <h2>{{ item.name }}</h2>
+              <p>Rentado: {{ item.rentals_count }} veces ({{ item.total_days_rented }} días)</p>
+              <p>Ingresos: {{ item.total_revenue_cents | currencyMxn }} | Gastos: {{ item.total_expense_cents | currencyMxn }}</p>
+            </ion-label>
+            <ion-badge slot="end" color="success">
+              {{ item.roi_margin_pct }}% ROI
+            </ion-badge>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  }
+</ion-content>

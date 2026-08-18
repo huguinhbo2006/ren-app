@@ -1,0 +1,119 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Historial de Cobros</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openCreateModal()">
+        <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (loading()) {
+    <ion-list>
+      @for (i of [1,2,3,4,5]; track i) {
+        <ion-item>
+          <ion-label>
+            <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  } @else {
+    <ion-list>
+      @for (payment of payments(); track payment.id) {
+        <ion-item>
+          <ion-icon name="cash-outline" slot="start" color="success" class="payment-icon"></ion-icon>
+          <ion-label>
+            <h2>{{ payment.amount_cents | currencyMxn }}</h2>
+            <p>Contrato: {{ payment.rental?.folio || '#' + payment.rental_id }}</p>
+            <p>{{ payment.created_at | date:'short' }} @if (payment.reference) { | Ref: {{ payment.reference }} }</p>
+          </ion-label>
+          <ion-badge slot="end" [color]="getMethodBadgeColor(payment.method)">
+            {{ getMethodLabel(payment.method) }}
+          </ion-badge>
+        </ion-item>
+      } @empty {
+        <ion-item class="ion-text-center">
+          <ion-label class="ion-padding">
+            <ion-icon name="receipt-outline" color="medium" style="font-size: 48px;"></ion-icon>
+            <p>No hay pagos ni abonos registrados.</p>
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+
+  <!-- Modal Crear Pago -->
+  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="closeModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Registrar Nuevo Cobro</ion-title>
+
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">
+              <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <form [formGroup]="paymentForm" (ngSubmit)="savePayment()">
+          <ion-item class="ion-margin-bottom">
+            <ion-label position="stacked">Contrato de Renta *</ion-label>
+            <ion-select formControlName="rental_id" placeholder="Seleccionar contrato">
+              @for (rental of rentals(); track rental.id) {
+                <ion-select-option [value]="rental.id">
+                  {{ rental.folio }} — {{ rental.customer?.name }} (${{ (rental.pending_balance_cents || 0) / 100 }} pendiente)
+                </ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+
+          <ion-item class="ion-margin-bottom">
+            <ion-label position="stacked">Monto ($ MXN) *</ion-label>
+            <ion-input type="number" formControlName="amount" placeholder="0.00" step="0.01"></ion-input>
+          </ion-item>
+
+          <ion-item class="ion-margin-bottom">
+            <ion-label position="stacked">Método de Pago *</ion-label>
+            <ion-select formControlName="method">
+              <ion-select-option value="cash">Efectivo</ion-select-option>
+              <ion-select-option value="transfer">Transferencia / SPEI</ion-select-option>
+              <ion-select-option value="card">Tarjeta Débito/Crédito</ion-select-option>
+              <ion-select-option value="check">Cheque</ion-select-option>
+              <ion-select-option value="other">Otro</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item class="ion-margin-bottom">
+            <ion-label position="stacked">Folio / Referencia</ion-label>
+            <ion-input formControlName="reference" placeholder="Ej: SPEI-987234"></ion-input>
+          </ion-item>
+
+          <div class="ion-margin-top">
+            <ion-button expand="block" type="submit" [disabled]="saving() || paymentForm.invalid">
+              @if (saving()) {
+                <ion-spinner name="crescent"></ion-spinner>
+              } @else {
+                <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+                Registrar Cobro
+              }
+            </ion-button>
+          </div>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

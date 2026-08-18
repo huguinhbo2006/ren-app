@@ -47,6 +47,7 @@ import {
   alertCircleOutline,
   cashOutline,
   cardOutline,
+  documentTextOutline,
 } from 'ionicons/icons';
 import { Share } from '@capacitor/share';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
@@ -160,6 +161,7 @@ export class RentalsPage implements OnInit {
       'alert-circle-outline': alertCircleOutline,
       'cash-outline': cashOutline,
       'card-outline': cardOutline,
+      'document-text-outline': documentTextOutline,
     });
   }
 
@@ -290,6 +292,11 @@ export class RentalsPage implements OnInit {
         handler: () => this.openPaymentModal(rental),
       },
       {
+        text: 'Descargar Contrato PDF',
+        icon: 'document-text-outline',
+        handler: () => this.downloadContractPdf(rental),
+      },
+      {
         text: 'Compartir Resumen',
         icon: 'share-social-outline',
         handler: () => this.shareRental(rental),
@@ -357,6 +364,11 @@ export class RentalsPage implements OnInit {
         await toast.present();
       },
     });
+  }
+
+  downloadContractPdf(rental: Rental): void {
+    void Haptics.impact({ style: ImpactStyle.Light });
+    this.rentalService.downloadPdf(rental.id, rental.folio);
   }
 
   async shareRental(rental: Rental): Promise<void> {
